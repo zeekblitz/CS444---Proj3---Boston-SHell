@@ -45,8 +45,63 @@ static char **parseCmd(char cmdLine[]) {
   return(cmdArg);
 }
 
-int main(int argc, char *argv[]) {
-  char cmdLine[MAXLINE], **cmdArg;
+void printENV(char* envp[]){
+  int k = 0;
+  for (int i = 0; i < MAXENV; i++){
+    if (envp[i] != NULL){
+      printf("%s\n", envp[i]);
+      k++;
+    }
+  }
+  printf("\n%d env variables\n\n", k);
+}
+
+void setENV(char* envp[], char* var, char* path){
+  char tmpStr[1024], *myPath, *justPATH;
+  int i = 0, j;
+  
+  while(envp[i] != NULL){
+    strcpy(tmpStr, envp[i]);
+    myPath = tmpStr;
+    justPATH = strsep(&myPath, "=");
+    if (strcmp(var, justPATH) == 0) {
+      free(envp[i]);
+      envp[i] = (char*)malloc(sizeof(justPATH) + sizeof(path) + 1);
+      strcat(envp[i], justPATH);
+      strcat(envp[i], "=");
+      strcat(envp[i], path);
+      //printf("%s\n", envp[i]);
+      return; // or break
+    }
+    i++;
+  }
+  // variable doesnt exist so create a new variable
+      envp[i] = (char*)malloc(sizeof(var) + sizeof(path) + 1);
+      strcat(envp[i], var);
+      strcat(envp[i], "=");
+      strcat(envp[i], path);
+      //printf("%s\n", envp[i]);
+}
+
+void unsetENV(char* envp[], char* var){
+  char tmpStr[1024], *myPath, *justPATH;
+  int i = 0;
+  
+  while(i < MAXENV){
+    strcpy(tmpStr, envp[i]);
+    myPath = tmpStr;
+    justPATH = strsep(&myPath, "=");
+    if (strcmp(var, justPATH) == 0) {
+      //free(envp[i]);
+      envp[i] = NULL;
+      return; // or break
+    }
+    i++;
+  }
+}
+
+int main(int argc, char *argv[], char *envp[]) {
+  char cmdLine[MAXLINE], **cmdArg, *envVars[MAXENV];
   int status, i, debug;
   pid_t pid;
 
@@ -57,6 +112,20 @@ int main(int argc, char *argv[]) {
       debug = 1;
     i++;
   }
+  
+  // copy the environment variables
+  i = 0;
+  while (envp[i] != NULL) {
+    envVars[i] = malloc(strlen(envp[i]) + 1);
+    strcpy(envVars[i], envp[i]);
+    i++;
+  }
+  // assign the rest to null
+  while (i < MAXENV){
+    envVars[i] = NULL;
+    i++;
+  }
+
   while (( 1 )) {
     printf("bsh> ");                      //prompt
     fgets(cmdLine, MAXLINE, stdin);       //get a line from keyboard
@@ -65,8 +134,8 @@ int main(int argc, char *argv[]) {
     if (debug) {
       i = 0;
       while (cmdArg[i] != NULL) {
-	printf("\t%d (%s)\n", i, cmdArg[i]);
-	i++;
+        printf("\t%d (%s)\n", i, cmdArg[i]);
+        i++;
       }
     }
 
@@ -78,12 +147,16 @@ int main(int argc, char *argv[]) {
     }
     //built-in command env
     else if (strcmp(cmdArg[0], "env") == 0) {
+      // print the environment variables and their paths
+      printENV(envVars);
     }
     //built-in command setenv
     else if (strcmp(cmdArg[0], "setenv") == 0) {
+      setENV(envVars, cmdArg[1], cmdArg[2]);
     }
     //built-in command unsetenv
     else if (strcmp(cmdArg[0], "unsetenv") == 0) {
+      unsetENV(envVars, cmdArg[1]);
     }
     //built-in command cd
     else if (strcmp(cmdArg[0], "cd") == 0) {
