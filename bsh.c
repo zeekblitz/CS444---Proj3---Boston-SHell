@@ -156,6 +156,12 @@ int main(int argc, char *argv[], char *envp[]) {
     i++;
   }
 
+  i = 0;
+  while(i < HISTSIZE){
+    histStr[i] = NULL;
+    i++;
+  }
+
   while (( 1 )) {
     printf("bsh> ");                      //prompt
     fgets(cmdLine, MAXLINE, stdin);       //get a line from keyboard

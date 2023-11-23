@@ -1,0 +1,5 @@
+For this project we were tasked with building our own shell that would work inside of our unix environment on the UMB servers. We had to implement functions for displaying, setting, and unsetting the environment variables. We had to make our own Change Directory (cd) function. And we also had to use history to display the last command lines that we used.
+
+We were also given a set of instructions to implement for extra credit, but unfortunately I was short on time and was not able to implement these features. The only part of my code that I couldn't get to work by the deadline was the ability to add new environment variables in the 'setenv' function. I had it working previously but then I changed my code around a bit and it stopped working. I tried to resolve it but because I was short on time I had to move on to the other functionalities.
+
+To be completely honest I didn't do a lot of testing on this code, again because I was rushing to complete it, but I know it works if you use the correct commands.
