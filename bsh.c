@@ -107,6 +107,29 @@ void unsetENV(char* envp[], char* var){
   }
 }
 
+void chDir(char* dir, char* envp[]){
+  char tmpStr[1024], *myPath, *justPATH;
+  int i = 0;
+  
+  if (dir == NULL){
+    while(i < MAXENV){
+      strcpy(tmpStr, envp[i]);
+      myPath = tmpStr;
+      justPATH = strsep(&myPath, "=");
+      if (strcmp("HOME", justPATH) == 0) {
+        chdir(myPath);
+        setENV(envp, "PWD", myPath);
+        return;
+      }
+      i++;
+    }
+  }
+  else{
+    setENV(envp, "PWD", dir);
+    chdir(dir);
+  }
+}
+
 int main(int argc, char *argv[], char *envp[]) {
   char cmdLine[MAXLINE], **cmdArg, *envVars[MAXENV], *histStr[HISTSIZE];
   int status, i, debug, historyCount = 0;
@@ -170,6 +193,7 @@ int main(int argc, char *argv[], char *envp[]) {
     }
     //built-in command cd
     else if (strcmp(cmdArg[0], "cd") == 0) {
+      chDir(cmdArg[1], envVars);
     }
     //built-in command history
     else if (strcmp(cmdArg[0], "history") == 0) {
