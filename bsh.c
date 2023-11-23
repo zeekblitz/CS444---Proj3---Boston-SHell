@@ -58,9 +58,9 @@ void printENV(char* envp[]){
 
 void setENV(char* envp[], char* var, char* path){
   char tmpStr[1024], *myPath, *justPATH;
-  int i = 0, j;
+  int i = 0;
   
-  while(envp[i] != NULL){
+  while(i < MAXENV){
     strcpy(tmpStr, envp[i]);
     myPath = tmpStr;
     justPATH = strsep(&myPath, "=");
@@ -71,16 +71,23 @@ void setENV(char* envp[], char* var, char* path){
       strcat(envp[i], "=");
       strcat(envp[i], path);
       //printf("%s\n", envp[i]);
-      return; // or break
+      return;
     }
     i++;
   }
-  // variable doesnt exist so create a new variable
+  // variable doesnt exist so create a new variable (this isnt working :( )
+  // loop through them again until you find an empty space to put the new one
+  i = 0;
+  while(i < MAXENV){
+    if (envp[i] == NULL){
       envp[i] = (char*)malloc(sizeof(var) + sizeof(path) + 1);
       strcat(envp[i], var);
       strcat(envp[i], "=");
       strcat(envp[i], path);
       //printf("%s\n", envp[i]);
+      return;
+    }
+  }
 }
 
 void unsetENV(char* envp[], char* var){
@@ -92,7 +99,7 @@ void unsetENV(char* envp[], char* var){
     myPath = tmpStr;
     justPATH = strsep(&myPath, "=");
     if (strcmp(var, justPATH) == 0) {
-      //free(envp[i]);
+      free(envp[i]);
       envp[i] = NULL;
       return; // or break
     }
@@ -101,8 +108,8 @@ void unsetENV(char* envp[], char* var){
 }
 
 int main(int argc, char *argv[], char *envp[]) {
-  char cmdLine[MAXLINE], **cmdArg, *envVars[MAXENV];
-  int status, i, debug;
+  char cmdLine[MAXLINE], **cmdArg, *envVars[MAXENV], *histStr[HISTSIZE];
+  int status, i, debug, historyCount = 0;
   pid_t pid;
 
   debug = 0;
@@ -129,6 +136,9 @@ int main(int argc, char *argv[], char *envp[]) {
   while (( 1 )) {
     printf("bsh> ");                      //prompt
     fgets(cmdLine, MAXLINE, stdin);       //get a line from keyboard
+    histStr[historyCount] = malloc(sizeof(cmdLine));
+    strcpy(histStr[historyCount], cmdLine);
+    historyCount++;
     cmdLine[strlen(cmdLine) - 1] = '\0';  //strip '\n'
     cmdArg = parseCmd(cmdLine);
     if (debug) {
@@ -163,6 +173,11 @@ int main(int argc, char *argv[], char *envp[]) {
     }
     //built-in command history
     else if (strcmp(cmdArg[0], "history") == 0) {
+      i = 0;
+      while (histStr[i] != NULL){
+        printf("%s", histStr[i]);
+        i++;
+      } 
     }
 
     //implement how to execute Minix commands here
